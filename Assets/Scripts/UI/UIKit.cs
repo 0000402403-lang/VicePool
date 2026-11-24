@@ -115,8 +115,8 @@ public static class UIKit
         if (glow)
         {
             var o = go.AddComponent<Outline>();
-            o.effectColor = Palette.A(color, 0.45f);
-            o.effectDistance = new Vector2(2.5f, -2.5f);
+            o.effectColor = new Color(0.03f, 0f, 0.08f, 0.95f);
+            o.effectDistance = new Vector2(2f, -2f);
         }
         return t;
     }
@@ -143,7 +143,7 @@ public static class UIKit
         var hv = img.gameObject.AddComponent<UIHover>();
         hv.outline = ol; hv.selectable = b;
 
-        var t = Label(img.transform, "Texto", label, fontSize, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, false);
+        var t = Label(img.transform, "Texto", label, fontSize, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, true);
         Stretch(t.rectTransform);
         return b;
     }

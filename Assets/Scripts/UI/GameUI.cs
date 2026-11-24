@@ -63,26 +63,26 @@ public class GameUI : MonoBehaviour
             bool left = p == 0;
             Color pc = GameRules.PlayerColor(p);
             var panel = UIKit.Panel(hud.transform, "Jogador" + (p + 1), Palette.A(Palette.Painel, 0.85f));
-            UIKit.Place(panel.rectTransform, new Vector2(left ? 0f : 1f, 1f), new Vector2(left ? 30f : -30f, -30f), new Vector2(520f, 150f));
+            UIKit.Place(panel.rectTransform, new Vector2(left ? 0f : 1f, 1f), new Vector2(left ? 30f : -30f, -30f), new Vector2(440f, 140f));
             panelOutline[p] = panel.gameObject.AddComponent<Outline>();
             panelOutline[p].effectColor = Palette.A(pc, 0.4f);
             panelOutline[p].effectDistance = new Vector2(3f, -3f);
 
             var av = UIKit.NewImage(panel.transform, "Avatar", Tex.Circle(), pc);
-            UIKit.Place(av.rectTransform, new Vector2(left ? 0f : 1f, 0.5f), new Vector2(left ? 18f : -18f, 0f), new Vector2(104f, 104f));
-            var num = UIKit.Label(av.transform, "Num", (p + 1).ToString(), 62, Palette.Fundo, TextAnchor.MiddleCenter, FontStyle.Bold, false);
+            UIKit.Place(av.rectTransform, new Vector2(left ? 0f : 1f, 0.5f), new Vector2(left ? 16f : -16f, 0f), new Vector2(96f, 96f));
+            var num = UIKit.Label(av.transform, "Num", (p + 1).ToString(), 62, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, true);
             UIKit.Stretch(num.rectTransform);
 
-            names[p] = UIKit.Label(panel.transform, "Nome", GameRules.PlayerName(p), 40, Color.white, left ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight, FontStyle.Bold, true);
-            UIKit.Place(names[p].rectTransform, new Vector2(left ? 0f : 1f, 1f), new Vector2(left ? 144f : -144f, -14f), new Vector2(350f, 54f));
-            names[p].rectTransform.pivot = new Vector2(left ? 0f : 1f, 1f);
+            names[p] = UIKit.Label(panel.transform, "Nome", GameRules.PlayerName(p), 40, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, true);
+            UIKit.Place(names[p].rectTransform, new Vector2(0.5f, 1f), new Vector2(left ? 65f : -65f, -14f), new Vector2(300f, 54f));
+            names[p].fontSize = 38;
 
             dots[p] = new Image[7];
             for (int i = 0; i < 7; i++)
             {
                 var d = UIKit.NewImage(panel.transform, "Bola" + i, Tex.Circle(), Palette.A(Color.white, 0.18f));
-                float x = (left ? 144f : -144f) + (left ? 1 : -1) * i * 50f;
-                UIKit.Place(d.rectTransform, new Vector2(left ? 0f : 1f, 0f), new Vector2(x, 24f), new Vector2(34f, 34f));
+                float x = (left ? 138f : -138f) + (left ? 1 : -1) * i * 44f;
+                UIKit.Place(d.rectTransform, new Vector2(left ? 0f : 1f, 0f), new Vector2(x, 22f), new Vector2(30f, 30f));
                 d.rectTransform.pivot = new Vector2(left ? 0f : 1f, 0f);
                 dots[p][i] = d;
             }
@@ -91,12 +91,13 @@ public class GameUI : MonoBehaviour
         phaseText = UIKit.Label(hud.transform, "Fase", "", 48, Palette.HotPink, TextAnchor.MiddleCenter, FontStyle.BoldAndItalic, true);
         UIKit.Place(phaseText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(760f, 64f));
         phaseText.rectTransform.pivot = new Vector2(0.5f, 1f);
-        scoreText = UIKit.Label(hud.transform, "Serie", "", 34, Palette.Ciano, TextAnchor.MiddleCenter, FontStyle.Bold, true);
+        scoreText = UIKit.Label(hud.transform, "Serie", "", 30, Palette.Ciano, TextAnchor.MiddleCenter, FontStyle.Bold, true);
         UIKit.Place(scoreText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -92f), new Vector2(760f, 46f));
         scoreText.rectTransform.pivot = new Vector2(0.5f, 1f);
-        ruleText = UIKit.Label(hud.transform, "Regra", "", 26, Palette.A(Color.white, 0.75f), TextAnchor.MiddleCenter, FontStyle.Italic, false);
-        UIKit.Place(ruleText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -140f), new Vector2(760f, 40f));
+        ruleText = UIKit.Label(hud.transform, "Regra", "", 24, Color.white, TextAnchor.UpperCenter, FontStyle.Italic, true);
+        UIKit.Place(ruleText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -136f), new Vector2(640f, 70f));
         ruleText.rectTransform.pivot = new Vector2(0.5f, 1f);
+        ruleText.horizontalOverflow = HorizontalWrapMode.Wrap;
 
         // barra de força (vertical)
         var pBox = UIKit.Panel(hud.transform, "BarraForca", Palette.A(Palette.Painel, 0.85f));
@@ -115,14 +116,6 @@ public class GameUI : MonoBehaviour
         UIKit.Place(pl.rectTransform, new Vector2(1f, 0.5f), new Vector2(-50f, 260f), new Vector2(120f, 40f));
         pl.rectTransform.pivot = new Vector2(1f, 0.5f);
 
-        // legenda de controles
-        var leg = UIKit.Panel(hud.transform, "Legenda", Palette.A(Palette.Painel, 0.78f));
-        UIKit.Place(leg.rectTransform, new Vector2(0f, 0f), new Vector2(30f, 30f), new Vector2(430f, 170f));
-        var lt = UIKit.Label(leg.transform, "Texto",
-            "Mouse: ajustar mira\nSegurar clique: alterar força\nSoltar: dar tacada\nQ/E: girar câmera   Esc: pausa", 26,
-            Color.white, TextAnchor.MiddleLeft, FontStyle.Normal, false);
-        UIKit.Stretch(lt.rectTransform);
-        lt.rectTransform.offsetMin = new Vector2(22f, 0f);
 
         // mensagem central
         msgText = UIKit.Label(hud.transform, "Mensagem", "", 46, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, true);
@@ -133,7 +126,7 @@ public class GameUI : MonoBehaviour
         hintText = UIKit.Label(hud.transform, "Dica", "", 34, Palette.Dourado, TextAnchor.MiddleCenter, FontStyle.Bold, true);
         UIKit.Place(hintText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(1500f, 60f));
         hintText.rectTransform.pivot = new Vector2(0.5f, 0f);
-        chosenText = UIKit.Label(hud.transform, "Escolhida", "", 34, Palette.Ciano, TextAnchor.MiddleCenter, FontStyle.Bold, true);
+        chosenText = UIKit.Label(hud.transform, "Escolhida", "", 30, Palette.Ciano, TextAnchor.MiddleCenter, FontStyle.Bold, true);
         UIKit.Place(chosenText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 110f), new Vector2(900f, 50f));
         chosenText.rectTransform.pivot = new Vector2(0.5f, 0f);
     }
@@ -266,8 +259,8 @@ public class GameUI : MonoBehaviour
 
         var st = gsm.StateId;
         bool choosing = (st == GameStateId.Aiming || st == GameStateId.Charging) && gsm.NeedsPocketChoice;
-        hintText.text = choosing && gsm.ChosenPocket == 0 ? "Escolha a caçapa: botão direito nela ou teclas 1 a 6" :
-                        (st == GameStateId.Placing ? "Mova o mouse e clique para posicionar a bola branca" : "");
+        hintText.text = choosing && gsm.ChosenPocket == 0 ? "Escolha a caçapa" :
+                        (st == GameStateId.Placing ? "Posicione a bola branca" : "");
         chosenText.text = choosing && gsm.ChosenPocket > 0 ? "Caçapa escolhida: " + gsm.ChosenPocket : "";
     }
 }

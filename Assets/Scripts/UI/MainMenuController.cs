@@ -52,10 +52,10 @@ public class MainMenuController : MonoBehaviour
         var sub = UIKit.Label(main.transform, "Sub", "Sinuca 3D arcade em mesa hexagonal", 38, Color.white, TextAnchor.MiddleCenter, FontStyle.Italic, true);
         UIKit.Place(sub.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(1000f, 60f));
 
-        UIKit.NeonButton(main.transform, "Jogar", new Vector2(-560f, 20f), new Vector2(460f, 96f), Palette.HotPink, () => Show(mode), 42);
-        UIKit.NeonButton(main.transform, "Configurações", new Vector2(-560f, -90f), new Vector2(460f, 96f), Palette.Violeta, () => Show(settings), 42);
-        UIKit.NeonButton(main.transform, "Créditos", new Vector2(-560f, -200f), new Vector2(460f, 96f), Palette.Ciano, () => Show(credits), 42);
-        UIKit.NeonButton(main.transform, "Sair", new Vector2(-560f, -310f), new Vector2(460f, 96f), Palette.Laranja, Quit, 42);
+        UIKit.NeonButton(main.transform, "Jogar", new Vector2(-450f, 20f), new Vector2(460f, 96f), Palette.HotPink, () => Show(mode), 42);
+        UIKit.NeonButton(main.transform, "Configurações", new Vector2(-450f, -90f), new Vector2(460f, 96f), Palette.Violeta, () => Show(settings), 42);
+        UIKit.NeonButton(main.transform, "Créditos", new Vector2(-450f, -200f), new Vector2(460f, 96f), Palette.Ciano, () => Show(credits), 42);
+        UIKit.NeonButton(main.transform, "Sair", new Vector2(-450f, -310f), new Vector2(460f, 96f), Palette.Laranja, Quit, 42);
 
         // ---------- seleção de modo ----------
         mode = NewPage(canvas.transform, "Modo");

@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class CueController : MonoBehaviour
 {
     public float chargeTime = 1.5f;
+    const float CuePitch = 16f;   // taco inclinado: ponta na bola, base acima da borda da mesa
 
     BallRegistry reg;
     GameStateMachine gsm;
@@ -94,7 +95,7 @@ public class CueController : MonoBehaviour
         if (col != null) DestroyImmediate(col);
         go.transform.SetParent(stick, false);
         go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        go.transform.localScale = new Vector3(radius * 2f, len * 0.5f, radius * 2f);
+        go.transform.localScale = new Vector3(radius * 3.2f, len * 0.5f, radius * 3.2f);
         go.transform.localPosition = new Vector3(0f, 0f, -(zStart + len * 0.5f));
         go.GetComponent<Renderer>().sharedMaterial = m;
         go.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -161,7 +162,7 @@ public class CueController : MonoBehaviour
                 {
                     int p = NearestPocket(mouseWorld, 0.45f);
                     if (p > 0) gsm.SelectPocket(p);
-                    else GameEvents.RaiseMessage("Escolha a caçapa antes: clique nela ou tecle 1 a 6");
+                    else GameEvents.RaiseMessage("Escolha a caçapa antes da tacada!");
                 }
                 else if (gsm.BeginCharging()) { power = 0f; }
             }
@@ -186,8 +187,10 @@ public class CueController : MonoBehaviour
 
         // taco: ponta encostada na bola, recua conforme a força
         float pull = power * 0.30f;
-        stick.position = cuePos - aimDir * (BallController.Radius + 0.012f + pull);
-        stick.rotation = Quaternion.LookRotation(aimDir, Vector3.up);
+        Quaternion flat = Quaternion.LookRotation(aimDir, Vector3.up);
+        Quaternion rot = Quaternion.AngleAxis(CuePitch, flat * Vector3.right) * flat;
+        stick.rotation = rot;
+        stick.position = cuePos + (rot * Vector3.back) * (BallController.Radius + 0.012f + pull);
 
         UpdateAimLine(cuePos);
     }

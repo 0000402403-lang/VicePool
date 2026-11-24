@@ -121,7 +121,7 @@ public class GameStateMachine : MonoBehaviour
         if (!Registry.cueBall.onTable) Registry.ReturnToTable(Registry.cueBall);
         Registry.HighlightPocket(ChosenPocket);
         if (NeedsPocketChoice && ChosenPocket == 0)
-            GameEvents.RaiseMessage("Escolha a caçapa: clique nela (botão direito) ou tecle 1 a 6");
+            GameEvents.RaiseMessage("Escolha a caçapa");
     }
 
     public void SelectPocket(int idx)
@@ -139,7 +139,7 @@ public class GameStateMachine : MonoBehaviour
         if (StateId != GameStateId.Aiming || Paused) return false;
         if (NeedsPocketChoice && ChosenPocket == 0)
         {
-            GameEvents.RaiseMessage("Escolha a caçapa antes da tacada! (clique nela ou tecle 1 a 6)");
+            GameEvents.RaiseMessage("Escolha a caçapa antes da tacada!");
             return false;
         }
         Change(SCharging);
@@ -247,7 +247,7 @@ public class GameStateMachine : MonoBehaviour
         var cue = Registry.cueBall;
         cue.rb.isKinematic = true;
         placementValid = true;
-        GameEvents.RaiseMessage(GameRules.PlayerName(CurrentPlayer) + ": posicione a bola branca e clique");
+        GameEvents.RaiseMessage(GameRules.PlayerName(CurrentPlayer) + ": posicione a bola branca");
     }
 
     public void OnExitPlacing()
