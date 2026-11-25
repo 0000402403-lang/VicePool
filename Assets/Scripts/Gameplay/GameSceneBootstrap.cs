@@ -23,6 +23,8 @@ public static class PostFx
         b.threshold.Override(0.85f);
         b.intensity.Override(bloomIntensity);
         b.scatter.Override(0.7f);
+        var tm = prof.Add<Tonemapping>(true);
+        tm.mode.Override(TonemappingMode.ACES);
         var v = prof.Add<Vignette>(true);
         v.intensity.Override(0.28f);
         v.smoothness.Override(0.5f);
@@ -107,6 +109,8 @@ public class GameSceneBootstrap : MonoBehaviour
         }
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Palette.Fundo;
+        var realSky = Resources.Load<Material>("MenuSkyCity");
+        if (realSky != null) { cam.clearFlags = CameraClearFlags.Skybox; RenderSettings.skybox = realSky; }
         cam.nearClipPlane = 0.05f;
         cam.farClipPlane = 1500f;
         cam.fieldOfView = 42f;
@@ -133,8 +137,18 @@ public class GameSceneBootstrap : MonoBehaviour
         sun.shadows = LightShadows.Soft;
         sun.transform.rotation = Quaternion.Euler(60f, -25f, 0f);
 
-        RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = Palette.H("4a4590");
+        if (RenderSettings.skybox != null)
+        {
+            RenderSettings.ambientMode = AmbientMode.Skybox;
+            RenderSettings.ambientIntensity = 0.25f;     // o HDRI tem lâmpadas muito fortes
+            RenderSettings.reflectionIntensity = 0.5f;
+            DynamicGI.UpdateEnvironment();
+        }
+        else
+        {
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            RenderSettings.ambientLight = Palette.H("4a4590");
+        }
     }
 
     void BuildNeonLights(Transform parent, List<Light> list)
@@ -172,7 +186,7 @@ public class GameSceneBootstrap : MonoBehaviour
         var fmesh = HexMesh(R, 0f);
         felt.AddComponent<MeshFilter>().sharedMesh = fmesh;
         var fr = felt.AddComponent<MeshRenderer>();
-        fr.sharedMaterial = DoubleSided(Mats.Lit(Palette.Magenta, 0.15f));
+        fr.sharedMaterial = RealGame.FeltMaterial(Palette.Magenta);
         var fc = felt.AddComponent<MeshCollider>();
         fc.sharedMesh = fmesh;
         fc.sharedMaterial = feltPM;
@@ -193,7 +207,7 @@ public class GameSceneBootstrap : MonoBehaviour
 
         // 6 bordas (tabelas) com colisor grosso + faixa neon
         float len = R - 0.30f;
-        var railMat = Mats.Lit(Palette.H("1b0f33"), 0.65f, 0.35f);
+        var railMat = RealGame.RailMaterial();
         for (int k = 0; k < 6; k++)
         {
             float a = (k * 60f + 30f) * Mathf.Deg2Rad;
@@ -350,17 +364,16 @@ public class GameSceneBootstrap : MonoBehaviour
         if (type == BallType.Gold)
         {
             m = Mats.Lit(color, 0.95f, 0.5f);
-            Mats.Emit(m, color, 0.8f);
+            Mats.Emit(m, color, 0.3f);
         }
         else if (type == BallType.Cue)
         {
             m = Mats.Lit(Color.white, 0.95f, 0f);
-            Mats.Emit(m, Color.white, 0.12f);
+            Mats.Emit(m, Color.white, 0.02f);
         }
         else
         {
-            m = Mats.Lit(color, 0.95f, 0.1f);
-            Mats.Emit(m, color, 0.35f);
+            m = RealGame.BallMaterial(color);
         }
         go.GetComponent<Renderer>().sharedMaterial = m;
 

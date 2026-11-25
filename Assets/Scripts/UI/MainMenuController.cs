@@ -25,6 +25,7 @@ void Awake()
             cam.backgroundColor = Palette.Fundo;
             cam.farClipPlane = 1500f;
             cam.fieldOfView = 55f;
+            cam.nearClipPlane = 0.5f;      // mais precisão de profundidade (sem pisca-pisca)
         }
 
         // Fundo realista: se existir Assets/Resources/MenuBackground (png/jpg), ele é usado.
@@ -98,8 +99,9 @@ void BuildUi()
 
 void BuildMainPage(Transform p)
     {
-        // logo dentro do triângulo neon (como no mockup)
+        // logo dentro do triângulo neon fino (como no mockup)
         var tri = UIKit.NewImage(p, "LogoTriangulo", TriangleSprite(), Color.white);
+        tri.raycastTarget = false;
         UIKit.Place(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 215f), new Vector2(600f, 600f));
 
         var vice = UIKit.Label(p, "LogoVice", "Vice", 150, Palette.HotPink, TextAnchor.MiddleCenter, FontStyle.BoldAndItalic, true);
@@ -109,14 +111,70 @@ void BuildMainPage(Transform p)
         UIKit.Place(pool.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(105f, 270f), new Vector2(360f, 160f));
         pool.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 7f);
 
-        // botões em coluna, lado esquerdo
-        float x = -620f;
-        var sz = new Vector2(500f, 84f);
-        UIKit.NeonButton(p, "Jogar", new Vector2(x, 10f), sz, Palette.HotPink, () => Show(mode), 38);
-        UIKit.NeonButton(p, "Configurações", new Vector2(x, -90f), sz, Palette.Violeta, () => Show(settings), 38);
-        UIKit.NeonButton(p, "Créditos", new Vector2(x, -190f), sz, Palette.Ciano, () => Show(credits), 38);
-        UIKit.NeonButton(p, "Sair", new Vector2(x, -290f), sz, Palette.Laranja, Quit, 38);
+        // botões "vidro" em coluna, lado esquerdo
+        float x = -610f;
+        var sz = new Vector2(470f, 78f);
+        GlassButton(p, "Jogar", new Vector2(x, 40f), sz, Palette.HotPink, true, () => Show(mode), 0.15f);
+        GlassButton(p, "Configurações", new Vector2(x, -52f), sz, Palette.Ciano, false, () => Show(settings), 0.25f);
+        GlassButton(p, "Créditos", new Vector2(x, -144f), sz, Palette.Ciano, false, () => Show(credits), 0.35f);
+        GlassButton(p, "Sair", new Vector2(x, -236f), sz, Palette.Laranja, false, Quit, 0.45f);
+
+        var foot = UIKit.Label(p, "Rodape", "VICE POOL   |   v1.0   |   SENAI Sete Lagoas", 22, Palette.A(Color.white, 0.5f), TextAnchor.LowerLeft, FontStyle.Normal, false);
+        UIKit.Place(foot.rectTransform, new Vector2(0f, 0f), new Vector2(40f, 26f), new Vector2(900f, 40f));
+        foot.rectTransform.pivot = new Vector2(0f, 0f);
+        foot.raycastTarget = false;
     }
+
+void GlassButton(Transform p, string label, Vector2 pos, Vector2 size, Color accent, bool primary,
+                     UnityEngine.Events.UnityAction onClick, float delay)
+    {
+        var root = new GameObject(label, typeof(RectTransform), typeof(CanvasGroup));
+        root.transform.SetParent(p, false);
+        var rt = root.GetComponent<RectTransform>();
+        UIKit.Place(rt, new Vector2(0.5f, 0.5f), pos, size);
+
+        var border = UIKit.NewImage(root.transform, "Borda", Tex.Rounded(), Palette.A(accent, primary ? 0.95f : 0.30f));
+        border.type = Image.Type.Sliced; border.raycastTarget = false;
+        UIKit.Stretch(border.rectTransform);
+
+        Color fillCol = primary ? new Color(accent.r * 0.55f, accent.g * 0.2f, accent.b * 0.5f, 0.88f)
+                                : new Color(0.05f, 0.03f, 0.10f, 0.62f);
+        var fill = UIKit.NewImage(root.transform, "Fundo", Tex.Rounded(), fillCol);
+        fill.type = Image.Type.Sliced;
+        fill.raycastTarget = true;     // é o alvo do clique/hover do botão
+        UIKit.Stretch(fill.rectTransform);
+        fill.rectTransform.offsetMin = new Vector2(2f, 2f);
+        fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
+
+        var bar = UIKit.NewImage(root.transform, "Barra", Tex.White(), accent);
+        bar.raycastTarget = false;
+        var br = bar.rectTransform;
+        br.anchorMin = new Vector2(0f, 0.24f); br.anchorMax = new Vector2(0f, 0.76f);
+        br.pivot = new Vector2(0f, 0.5f);
+        br.anchoredPosition = new Vector2(16f, 0f);
+        br.sizeDelta = new Vector2(5f, 0f);
+
+        var txt = UIKit.Label(root.transform, "Texto", label, 36, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold, false);
+        txt.raycastTarget = false;
+        UIKit.Stretch(txt.rectTransform);
+        txt.rectTransform.offsetMin = new Vector2(50f, 0f);
+        txt.rectTransform.offsetMax = new Vector2(-56f, 0f);
+
+        var arrow = UIKit.Label(root.transform, "Seta", ">", 40, accent, TextAnchor.MiddleRight, FontStyle.Bold, false);
+        arrow.raycastTarget = false;
+        UIKit.Stretch(arrow.rectTransform);
+        arrow.rectTransform.offsetMin = new Vector2(0f, 0f);
+        arrow.rectTransform.offsetMax = new Vector2(-24f, 0f);
+
+        var btn = root.AddComponent<Button>();
+        btn.targetGraphic = fill;
+        btn.transition = Selectable.Transition.None;
+        btn.onClick.AddListener(onClick);
+
+        var fx = root.AddComponent<MenuButtonFx>();
+        fx.Init(rt, pos, border, bar, arrow, root.GetComponent<CanvasGroup>(), accent, primary, delay);
+    }
+
 
     void BuildPhoto(Transform canvasT)
     {
@@ -182,12 +240,12 @@ void BuildMainPage(Transform p)
                 float d = Mathf.Min(SegDist(p, a, b), Mathf.Min(SegDist(p, b, c), SegDist(p, c, a)));
                 float s1 = Side(p, a, b), s2 = Side(p, b, c), s3 = Side(p, c, a);
                 bool inside = !((s1 < 0f || s2 < 0f || s3 < 0f) && (s1 > 0f || s2 > 0f || s3 > 0f));
-                float line = Mathf.Clamp01(1f - d / 0.011f);
-                float glow = Mathf.Clamp01(1f - d / 0.05f);
-                glow = glow * glow * 0.6f;
+                float line = Mathf.Clamp01(1f - d / 0.007f);
+                float glow = Mathf.Clamp01(1f - d / 0.035f);
+                glow = glow * glow * 0.45f;
                 float k = Mathf.Max(line, glow);
                 Color neon = Color.Lerp(Palette.HotPink, Palette.Ciano, p.x);
-                float fa = inside ? 0.78f : 0f;
+                float fa = inside ? 0.40f : 0f;
                 var col = new Color(
                     Mathf.Lerp(0.05f, neon.r, k),
                     Mathf.Lerp(0.02f, neon.g, k),

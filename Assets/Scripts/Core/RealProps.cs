@@ -142,7 +142,7 @@ public static class RealCar
         car.transform.SetParent(parent, false);
         Transform c = car.transform;
 
-        var paint = Mats.Lit(new Color(0.50f, 0.02f, 0.38f), 0.93f, 0.85f);
+        var paint = Mats.Lit(new Color(0.80f, 0.04f, 0.55f), 0.95f, 0.9f);
         var glass = Mats.Lit(new Color(0.015f, 0.02f, 0.045f), 0.99f, 0.25f);
         var tireM = Mats.Lit(new Color(0.025f, 0.025f, 0.03f), 0.25f, 0f);
         var rimM = Mats.Lit(new Color(0.78f, 0.78f, 0.84f), 0.92f, 1f);
@@ -254,7 +254,7 @@ public static class RealPalm
     static Texture2D LeafTex()
     {
         const int W = 64, H = 128;
-        var t = new Texture2D(W, H, TextureFormat.RGBA32, true);
+        var t = new Texture2D(W, H, TextureFormat.RGBA32, false);
         var px = new Color32[W * H];
         for (int y = 0; y < H; y++)
             for (int x = 0; x < W; x++)
@@ -272,20 +272,21 @@ public static class RealPalm
             }
         t.SetPixels32(px);
         t.wrapMode = TextureWrapMode.Clamp;
-        t.Apply(true);
+        t.filterMode = FilterMode.Bilinear;
+        t.Apply(false);
         return t;
     }
 
     static Material Leaf()
     {
         if (_leaf != null) return _leaf;
-        _leaf = Mats.Lit(Color.white, 0.35f, 0f);
+        _leaf = Mats.Lit(new Color(0.7f, 0.75f, 0.7f), 0.2f, 0f);
         var tx = LeafTex();
         _leaf.SetTexture("_BaseMap", tx);
         _leaf.mainTexture = tx;
         _leaf.SetFloat("_Cull", 0f);
         _leaf.SetFloat("_AlphaClip", 1f);
-        _leaf.SetFloat("_Cutoff", 0.5f);
+        _leaf.SetFloat("_Cutoff", 0.4f);
         _leaf.EnableKeyword("_ALPHATEST_ON");
         _leaf.SetOverrideTag("RenderType", "TransparentCutout");
         _leaf.renderQueue = 2450;
@@ -379,6 +380,16 @@ public static class RealSurfaces
         return m;
     }
 
+public static Material Pavement(float sizeX, float sizeZ)
+    {
+        var src = Resources.Load<Material>("Pavement");
+        if (src == null) return Mats.Lit(Palette.H("1a1226"), 0.3f, 0f);
+        var m = new Material(src);
+        m.SetTextureScale("_BaseMap", new Vector2(sizeX / 3f, sizeZ / 3f));
+        return m;
+    }
+
+
     public static void Water(Transform parent)
     {
         var water = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -387,7 +398,7 @@ public static class RealSurfaces
         water.transform.SetParent(parent, false);
         water.transform.localScale = new Vector3(60f, 1f, 60f);
         var r = water.GetComponent<Renderer>();
-        r.sharedMaterial = Mats.Lit(new Color(0.03f, 0.015f, 0.07f), 0.97f, 0.7f);
+        r.sharedMaterial = Mats.Lit(new Color(0.02f, 0.01f, 0.05f), 0.9f, 0.3f);
         r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
     }
 }

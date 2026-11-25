@@ -50,6 +50,8 @@ static void Sky(Transform parent)
         {
             RenderSettings.skybox = real;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
+            RenderSettings.ambientIntensity = 0.55f;
+            RenderSettings.reflectionIntensity = 0.45f;
             DynamicGI.UpdateEnvironment();
             var c = Camera.main;
             if (c != null) c.clearFlags = CameraClearFlags.Skybox;
@@ -217,12 +219,18 @@ static void Sun(Transform parent)
         return go;
     }
 
-    static void Land(Transform parent)
+static void Land(Transform parent)
     {
-        // península escura à esquerda (onde ficam as palmeiras em silhueta)
-        var dark = Mats.Lit(Palette.H("0b0618"), 0.1f);
-        Cube(parent, "Peninsula", new Vector3(-36f, -0.3f, 14f), new Vector3(46f, 0.6f, 110f), dark);
-        Cube(parent, "PeninsulaBorda", new Vector3(-12.9f, 0.02f, 14f), new Vector3(0.18f, 0.05f, 110f), Mats.Glow(Palette.Ciano, 2.5f));
+        // calçadas de pedra dos dois lados da avenida (topo acima do mar: sem z-fighting)
+        var paveL = RealSurfaces.Pavement(64f, 270f);
+        Cube(parent, "CalcadaEsq", new Vector3(-28.05f, 0f, 95f), new Vector3(63.9f, 0.12f, 270f), paveL);
+        var paveR = RealSurfaces.Pavement(24f, 270f);
+        Cube(parent, "CalcadaDir", new Vector3(28.1f, 0f, 95f), new Vector3(24f, 0.12f, 270f), paveR);
+
+        // meio-fio claro
+        var curb = Mats.Lit(Palette.H("8a7fa0"), 0.3f);
+        Cube(parent, "MeioFioEsq", new Vector3(3.95f, 0.04f, 95f), new Vector3(0.3f, 0.16f, 270f), curb);
+        Cube(parent, "MeioFioDir", new Vector3(16.15f, 0.04f, 95f), new Vector3(0.3f, 0.16f, 270f), curb);
     }
 
     static void Road(Transform parent)
