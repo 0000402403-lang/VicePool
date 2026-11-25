@@ -13,7 +13,8 @@ public class GameUI : MonoBehaviour
     Text phaseText, scoreText, ruleText, msgText, hintText, chosenText, bannerText, bannerSub, endWinner, endScore;
     Image powerFill;
     GameObject pausePanel, pauseBox, settingsPanel, endPanel, bannerPanel;
-    float power, powerShown, msgTimer;
+    float power, powerShown, msgTimer, bannerTimer;
+    Outline bannerOutline;
     Color msgColor = Color.white;
 
     void Awake()
@@ -129,6 +130,7 @@ public class GameUI : MonoBehaviour
         chosenText = UIKit.Label(hud.transform, "Escolhida", "", 30, Palette.Ciano, TextAnchor.MiddleCenter, FontStyle.Bold, true);
         UIKit.Place(chosenText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 110f), new Vector2(900f, 50f));
         chosenText.rectTransform.pivot = new Vector2(0.5f, 0f);
+        // (sem legenda de controles dentro do jogo)
     }
 
     GameObject Overlay(string name, string title, Color titleColor, out Image box)
@@ -184,6 +186,7 @@ public class GameUI : MonoBehaviour
         UIKit.Place(bg.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 60f), new Vector2(1200f, 260f));
         var ol = bg.gameObject.AddComponent<Outline>();
         ol.effectColor = Palette.A(Palette.Dourado, 0.9f); ol.effectDistance = new Vector2(3f, -3f);
+        bannerOutline = ol;
         bannerText = UIKit.Label(bg.transform, "Texto", "", 70, Palette.Dourado, TextAnchor.MiddleCenter, FontStyle.BoldAndItalic, true);
         UIKit.Place(bannerText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 40f), new Vector2(1160f, 110f));
         bannerSub = UIKit.Label(bg.transform, "Sub", "", 38, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, false);
@@ -226,14 +229,36 @@ public class GameUI : MonoBehaviour
         pauseBox.SetActive(true);
         settingsPanel.SetActive(false);
     }
-    void OnPhaseEnded(int winner, int idx)
+void OnPhaseEnded(int winner, int idx)
     {
+        if (gsm == null) gsm = GameStateMachine.Instance;
+        bannerTimer = 0f;
+        bannerText.color = Palette.Dourado;
+        if (bannerOutline != null) bannerOutline.effectColor = Palette.A(Palette.Dourado, 0.9f);
         bannerText.text = GameRules.PlayerName(winner) + " venceu a " + gsm.phases[idx].displayName + "!";
-        bannerSub.text = "Série: " + gsm.Wins[0] + " x " + gsm.Wins[1];
+        string next;
+        if (gsm.Wins[winner] >= 2) next = idx == 1 ? "2 x 0! A Fase 3 não é necessária" : "Vitória na série!";
+        else if (idx >= gsm.phases.Length - 1) next = "Fim da série";
+        else if (gsm.Wins[0] == gsm.Wins[1]) next = "Empate! A " + gsm.phases[idx + 1].displayName + " decide a série";
+        else next = "Próxima: " + gsm.phases[idx + 1].displayName + " (" + gsm.phases[idx + 1].difficulty + ")";
+        bannerSub.text = "Série: " + gsm.Wins[0] + " x " + gsm.Wins[1] + "   -   " + next;
         bannerPanel.SetActive(true);
         Refresh();
     }
-    void OnPhaseStarted(int idx) { bannerPanel.SetActive(false); endPanel.SetActive(false); Refresh(); }
+void OnPhaseStarted(int idx)
+    {
+        endPanel.SetActive(false);
+        var g = GameStateMachine.Instance;
+        if (g == null || g.phases == null || g.phases.Length == 0) { bannerPanel.SetActive(false); Refresh(); return; }
+        var cfg = g.phases[Mathf.Clamp(idx, 0, g.phases.Length - 1)];
+        bannerText.text = cfg.displayName.ToUpper() + " - " + cfg.difficulty.ToUpper();
+        bannerText.color = cfg.neonColor;
+        if (bannerOutline != null) bannerOutline.effectColor = Palette.A(cfg.neonColor, 0.9f);
+        bannerSub.text = GameRules.PlayerName(g.CurrentPlayer) + " começa";
+        bannerPanel.SetActive(true);
+        bannerTimer = 2.2f;
+        Refresh();
+    }
     void OnMatchEnded(int winner)
     {
         bannerPanel.SetActive(false);
@@ -249,6 +274,12 @@ public class GameUI : MonoBehaviour
 
         powerShown = Mathf.Lerp(powerShown, power, 1f - Mathf.Exp(-20f * Time.unscaledDeltaTime));
         powerFill.fillAmount = powerShown;
+
+        if (bannerTimer > 0f)
+        {
+            bannerTimer -= Time.unscaledDeltaTime;
+            if (bannerTimer <= 0f) bannerPanel.SetActive(false);
+        }
 
         if (msgTimer > 0f)
         {

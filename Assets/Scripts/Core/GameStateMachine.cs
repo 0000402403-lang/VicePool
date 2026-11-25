@@ -163,12 +163,42 @@ public class GameStateMachine : MonoBehaviour
 
     void FixedUpdate() { if (current != null && !Paused) current.FixedTick(); }
 
-    void Update()
+void Update()
     {
         var kb = Keyboard.current;
         if (kb != null && kb.escapeKey.wasPressedThisFrame) TogglePause();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (kb != null && !Paused) DebugKeys(kb);
+#endif
         if (current != null && !Paused) current.Tick();
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    /// <summary>Atalhos de teste (só no Editor / build de desenvolvimento): F1 só falta a dourada, F2 vence a fase, F3 vai para a Fase 3 com 1 x 1.</summary>
+    void DebugKeys(Keyboard kb)
+    {
+        if (StateId != GameStateId.Aiming) return;
+        if (kb.f1Key.wasPressedThisFrame)
+        {
+            var own = GameRules.OwnType(CurrentPlayer);
+            foreach (var b in Registry.all)
+                if (b.type == own && b.onTable) { b.onTable = false; b.keptPocketed = true; b.gameObject.SetActive(false); }
+            GameEvents.RaiseMessage("[TESTE] Só falta a bola dourada");
+            GameEvents.RaiseHud();
+        }
+        else if (kb.f2Key.wasPressedThisFrame)
+        {
+            GameEvents.RaiseMessage("[TESTE] Fase vencida");
+            EndPhase(CurrentPlayer);
+        }
+        else if (kb.f3Key.wasPressedThisFrame)
+        {
+            Wins[0] = 1; Wins[1] = 1; MatchWinner = -1;
+            GameEvents.RaiseMessage("[TESTE] Série 1 x 1 - Fase 3");
+            StartPhase(phases.Length - 1);
+        }
+    }
+#endif
 
     // ---------------- avaliação ----------------
     public void EvaluateShot()
