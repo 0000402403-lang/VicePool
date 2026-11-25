@@ -11,8 +11,8 @@ public class CueController : MonoBehaviour
     Camera cam;
 
     Transform stick;
-    LineRenderer line1, line2;
-    SpriteRenderer ghost;
+    LineRenderer line1, line2, line1Out, line2Out;   // *Out = contorno escuro para dar contraste com o feltro
+    SpriteRenderer ghost, ghostOut;
     Vector3 aimDir = Vector3.forward;
     float power;
     int builtStyle = -1;
@@ -32,20 +32,34 @@ public class CueController : MonoBehaviour
         sg.transform.SetParent(transform, false);
         stick = sg.transform;
 
-        line1 = MakeLine("MiraLinha", Palette.A(Palette.Ciano, 0.9f), 0.012f);
-        line2 = MakeLine("MiraSaida", Palette.A(Palette.HotPink, 0.9f), 0.010f);
+        // contorno escuro (largo) por baixo + linha branca/dourada (fina) por cima = legível em qualquer cor de mesa
+        Color outline = Palette.A(Palette.Fundo, 0.9f);
+        line1Out = MakeLine("MiraLinhaContorno", outline, 0.034f, 0);
+        line2Out = MakeLine("MiraSaidaContorno", outline, 0.030f, 0);
+        line1 = MakeLine("MiraLinha", Color.white, 0.018f, 1);
+        line2 = MakeLine("MiraSaida", Palette.Dourado, 0.016f, 1);
 
         var gg = new GameObject("MiraFantasma");
         gg.transform.SetParent(transform, false);
+        var go2 = new GameObject("MiraFantasmaContorno");
+        go2.transform.SetParent(transform, false);
+        ghostOut = go2.AddComponent<SpriteRenderer>();
+        ghostOut.sprite = Sprite.Create(Tex.RingTex(128, 0.50f, 1f), new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100f);
+        ghostOut.color = Palette.A(Palette.Fundo, 0.9f);
+        ghostOut.sortingOrder = 0;
+        go2.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        go2.transform.localScale = Vector3.one * (BallController.Radius * 2f * 1.12f / 1.28f);
+
         ghost = gg.AddComponent<SpriteRenderer>();
-        ghost.sprite = Sprite.Create(Tex.RingTex(128, 0.78f, 1f), new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100f);
-        ghost.color = Palette.A(Palette.Ciano, 0.95f);
+        ghost.sprite = Sprite.Create(Tex.RingTex(128, 0.64f, 0.94f), new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100f);
+        ghost.color = Color.white;
+        ghost.sortingOrder = 1;
         gg.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
         gg.transform.localScale = Vector3.one * (BallController.Radius * 2f / 1.28f);
         SetVisible(false);
     }
 
-    LineRenderer MakeLine(string n, Color c, float w)
+    LineRenderer MakeLine(string n, Color c, float w, int order)
     {
         var go = new GameObject(n);
         go.transform.SetParent(transform, false);
@@ -56,6 +70,7 @@ public class CueController : MonoBehaviour
         lr.alignment = LineAlignment.View;
         lr.useWorldSpace = true;
         lr.numCapVertices = 4;
+        lr.sortingOrder = order;
         lr.positionCount = 2;
         lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         lr.receiveShadows = false;
@@ -67,8 +82,11 @@ public class CueController : MonoBehaviour
         visible = v;
         if (stick != null) stick.gameObject.SetActive(v);
         if (line1 != null) line1.enabled = v && GameSettings.AimLine;
+        if (line1Out != null) line1Out.enabled = v && GameSettings.AimLine;
         if (line2 != null) line2.enabled = false;
+        if (line2Out != null) line2Out.enabled = false;
         if (ghost != null) ghost.enabled = v && GameSettings.AimLine;
+        if (ghostOut != null) ghostOut.enabled = v && GameSettings.AimLine;
     }
 
     // ---------------- visual do taco ----------------
@@ -211,7 +229,8 @@ public class CueController : MonoBehaviour
     {
         bool on = GameSettings.AimLine;
         line1.enabled = on; ghost.enabled = on;
-        if (!on) { line2.enabled = false; return; }
+        line1Out.enabled = on; ghostOut.enabled = on;
+        if (!on) { line2.enabled = false; line2Out.enabled = false; return; }
 
         var hits = Physics.SphereCastAll(origin, BallController.Radius * 0.98f, aimDir, 6f, ~0, QueryTriggerInteraction.Ignore);
         bool found = false; float bd = 999f; RaycastHit best = default(RaycastHit);
@@ -230,9 +249,12 @@ public class CueController : MonoBehaviour
         end.y = y;
         line1.SetPosition(0, start);
         line1.SetPosition(1, end);
+        line1Out.SetPosition(0, start);
+        line1Out.SetPosition(1, end);
 
-        if (!found) { ghost.enabled = false; line2.enabled = false; return; }
+        if (!found) { ghost.enabled = false; ghostOut.enabled = false; line2.enabled = false; line2Out.enabled = false; return; }
         ghost.transform.position = end;
+        ghostOut.transform.position = end;
         var bc = best.collider.GetComponent<BallController>();
         if (bc != null)
         {
@@ -243,6 +265,9 @@ public class CueController : MonoBehaviour
             line2.SetPosition(0, tp);
             line2.SetPosition(1, tp + outDir * 0.45f);
             line2.enabled = true;
+            line2Out.SetPosition(0, tp);
+            line2Out.SetPosition(1, tp + outDir * 0.45f);
+            line2Out.enabled = true;
         }
         else
         {
@@ -251,6 +276,9 @@ public class CueController : MonoBehaviour
             line2.SetPosition(0, end);
             line2.SetPosition(1, end + refl * 0.6f);
             line2.enabled = true;
+            line2Out.SetPosition(0, end);
+            line2Out.SetPosition(1, end + refl * 0.6f);
+            line2Out.enabled = true;
         }
     }
 }

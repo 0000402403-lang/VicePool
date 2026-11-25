@@ -8,6 +8,7 @@ public class GameUI : MonoBehaviour
     BallRegistry reg;
 
     Image[][] dots = new Image[2][];
+    Outline[][] dotOutlines = new Outline[2][];
     Outline[] panelOutline = new Outline[2];
     Text[] names = new Text[2];
     Text phaseText, scoreText, ruleText, msgText, hintText, chosenText, bannerText, bannerSub, endWinner, endScore;
@@ -62,7 +63,7 @@ public class GameUI : MonoBehaviour
         {
             bool left = p == 0;
             Color pc = GameRules.PlayerColor(p);
-            var panel = UIKit.Panel(hud.transform, "Jogador" + (p + 1), Palette.A(Palette.Painel, 0.85f));
+            var panel = UIKit.Panel(hud.transform, "Jogador" + (p + 1), Palette.A(Palette.Painel, 0.95f));
             UIKit.Place(panel.rectTransform, new Vector2(left ? 0f : 1f, 1f), new Vector2(left ? 30f : -30f, -30f), new Vector2(520f, 150f));
             panelOutline[p] = panel.gameObject.AddComponent<Outline>();
             panelOutline[p].effectColor = Palette.A(pc, 0.4f);
@@ -78,13 +79,24 @@ public class GameUI : MonoBehaviour
             names[p].rectTransform.pivot = new Vector2(left ? 0f : 1f, 1f);
 
             dots[p] = new Image[7];
+            dotOutlines[p] = new Outline[7];
             for (int i = 0; i < 7; i++)
             {
+<<<<<<< Updated upstream
                 var d = UIKit.NewImage(panel.transform, "Bola" + i, Tex.Circle(), Palette.A(Color.white, 0.18f));
                 float x = (left ? 144f : -144f) + (left ? 1 : -1) * i * 50f;
                 UIKit.Place(d.rectTransform, new Vector2(left ? 0f : 1f, 0f), new Vector2(x, 24f), new Vector2(34f, 34f));
+=======
+                var d = UIKit.NewImage(panel.transform, "Bola" + i, Tex.Circle(), Palette.A(Color.white, 0.30f));
+                float x = (left ? 144f : -144f) + (left ? 1 : -1) * i * 52f;
+                UIKit.Place(d.rectTransform, new Vector2(left ? 0f : 1f, 0f), new Vector2(x, 22f), new Vector2(40f, 40f));
+>>>>>>> Stashed changes
                 d.rectTransform.pivot = new Vector2(left ? 0f : 1f, 0f);
+                var o = d.gameObject.AddComponent<Outline>();
+                o.effectDistance = new Vector2(3f, -3f);
+                o.effectColor = Palette.A(Color.white, 0.6f);
                 dots[p][i] = d;
+                dotOutlines[p][i] = o;
             }
         }
 
@@ -210,18 +222,27 @@ public class GameUI : MonoBehaviour
         scoreText.text = "Série: " + gsm.Wins[0] + " x " + gsm.Wins[1] + "   (vence quem ganhar 2 fases)";
         ruleText.text = cfg.ruleText;
 
-        Color[] ballCol = { Palette.BolaAzul, Palette.BolaVermelha };
+        // versões mais claras das bolas para contrastar com o painel escuro
+        Color[] ballCol = { Palette.H("5B8CFF"), Palette.H("FF4D63") };
         for (int p = 0; p < 2; p++)
         {
             int kept = reg.CountKept(GameRules.OwnType(p));
-            for (int i = 0; i < 6; i++) dots[p][i].color = i < kept ? ballCol[p] : Palette.A(Color.white, 0.18f);
+            for (int i = 0; i < 6; i++) SetDot(p, i, i < kept, ballCol[p]);
             bool goldKept = reg.goldBall != null && !reg.goldBall.onTable && reg.goldBall.keptPocketed && gsm.CurrentPlayer == p && gsm.StateId == GameStateId.PhaseEnd;
-            dots[p][6].color = goldKept ? Palette.Dourado : Palette.A(Palette.Dourado, 0.22f);
+            SetDot(p, 6, goldKept, Palette.Dourado);
             bool turn = gsm.CurrentPlayer == p;
             panelOutline[p].effectColor = turn ? Palette.A(GameRules.PlayerColor(p), 1f) : Palette.A(GameRules.PlayerColor(p), 0.2f);
             names[p].text = GameRules.PlayerName(p) + (turn ? "  ◄" : "");
             if (p == 1) names[p].text = (turn ? "►  " : "") + GameRules.PlayerName(p);
         }
+    }
+
+    // bola encaçapada = cor cheia com contorno branco; vazia = cinza claro translúcido com contorno fino
+    void SetDot(int p, int i, bool filled, Color full)
+    {
+        dots[p][i].color = filled ? full : Palette.A(Color.white, 0.22f);
+        dotOutlines[p][i].effectColor = filled ? Color.white : Palette.A(Color.white, 0.55f);
+        dotOutlines[p][i].effectDistance = filled ? new Vector2(4f, -4f) : new Vector2(2.5f, -2.5f);
     }
 
     void ShowMsg(string s) { msgText.text = s; msgColor = Color.white; msgTimer = 2.4f; }
